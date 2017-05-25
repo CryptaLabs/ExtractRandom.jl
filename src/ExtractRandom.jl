@@ -36,6 +36,12 @@ two_universal!(a::AbstractMatrix{Bool}, v::AbstractVector{Bool},
     out
 end
 
+two_universal{T}(::Type{Val{T}}, a::AbstractMatrix{Bool}, v::AbstractVector{Bool}) = begin
+    @argcheck length(v) % size(a, 2) == 0
+    n = div(length(v), size(a, 2)) * size(a, 1)
+    two_universal!(a, v, similar(v, (n,)))
+end
+
 two_universal(a::AbstractMatrix{Bool}, v::AbstractVector{Bool}) = begin
     @argcheck length(v) % size(a, 2) == 0
     n = div(length(v), size(a, 2)) * size(a, 1)
@@ -48,7 +54,19 @@ two_universal{T <: Integer}(a::AbstractMatrix{T}, v::AbstractVector{T}) = begin
     two_universal!(a, v, similar(v, (n,)))
 end
 
+two_universal{T <: Integer, V}(::Type{Val{V}}, a::AbstractMatrix{T},
+                               v::AbstractVector{T}) = begin
+    @argcheck length(v) % size(a, 2) == 0
+    n = round(Int64, (div(length(v), size(a, 2)) * size(a, 1)) / 8sizeof(T), RoundUp)
+    two_universal!(Val{V}, a, v, similar(v, (n,)))
+end
+
 two_universal!{T <: Integer}(a::AbstractArray{T}, v::AbstractVector{T},
+                             out::AbstractVector{T}) = begin
+    two_universal!(Val{:naive}, a, v, out)
+end
+
+two_universal!{T <: Integer}(::Type{Val{:naive}}, a::AbstractArray{T}, v::AbstractVector{T},
                              out::AbstractVector{T}) = begin
 
     Nbits = 8sizeof(eltype(out))
