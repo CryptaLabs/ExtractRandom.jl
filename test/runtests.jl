@@ -50,17 +50,17 @@ end
         @test integer_representation(Int64, bit_representation(a)) == a
     end
 
-    @testset "With bytes" begin
+    @testset "With bytes, algorigthm $algo" for algo in [:work, :naive]
         @testset "Just one block (no modulo)" begin
             a = UInt8[1 2; 3 4]
             v = UInt8[1, 1]
-            @test two_universal(a, v) == [(UInt8(1) << 7 | (UInt8(1) << 6))]
+            @test two_universal(Val{algo}, a, v) == [(UInt8(1) << 7 | (UInt8(1) << 6))]
 
             const xorbits = ExtractRandom.xorbits
             a = UInt8[1 2; 3 4]
             v = UInt8[1, 3]
             expected = (xorbits((1 & 1) | (2 & 3)) << 7 | (xorbits((1 & 3) | (3 & 4)) << 6))
-            @test two_universal(a, v) == [expected]
+            @test two_universal(Val{algo}, a, v) == [expected]
         end
 
         @testset "vs bit arrays" begin
@@ -78,8 +78,9 @@ end
 
             vbool = bit_representation(v)
 
-            x = two_universal(a, v)
             xbool = two_universal(abool, vbool)
+
+            x = two_universal(Val{algo}, a, v)
             @test bit_representation(x)[1:length(xbool)] == xbool
         end
     end
