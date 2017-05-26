@@ -63,7 +63,7 @@ end
         @test integer_representation(Int64, bit_representation(a)) == a
     end
 
-    @testset "With bytes, algorigthm $algo" for algo in [:work, :naive]
+    @testset "With bytes, algorigthm $algo" for algo in [:work, :naive, :row_major]
         @testset "Just one block (no modulo)" begin
             a = UInt8[1 2; 3 4]
             v = UInt8[1, 1]

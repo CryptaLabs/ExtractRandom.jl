@@ -169,6 +169,37 @@ _loop_two_universal!(a::AbstractMatrix, v::AbstractVector, out::AbstractVector,
     nothing
 end
 
+two_universal!{T <: Integer}(::Type{Val{:row_major}}, a::AbstractMatrix{T}, v::AbstractVector{T},
+                                       out::AbstractVector{T}) = begin
+    row_major_two_universal!(transpose(a), v, out)
+end
+
+row_major_two_universal!{T <: Integer}(a::AbstractMatrix{T}, v::AbstractVector{T},
+                                       out::AbstractVector{T}) = begin
+    nbits = 8sizeof(eltype(out))
+    multiples = div(length(v), size(a, 1))
+    @argcheck length(a) ≠ 0
+
+    fill!(out, zero(T))
+    length(v) ≠ 0 || return out
+
+    @argcheck length(v) % size(a, 1) == 0
+    @argcheck round(Int64, (multiples * size(a, 2)) / nbits, RoundUp) == length(out)
+
+    for mult in 0:(multiples - 1), j in 1:size(a, 2)
+        i′₀ = mult * size(a, 1) + 1
+        x = a[1, j] & v[i′₀]
+        for i in 2:size(a, 1)
+            x $= a[i, j] & v[i′₀ + i - 1]
+        end
+        ibit = mult * size(a, 2) + j
+        o_index = div(ibit - 1, nbits) + 1
+        out[o_index] |= convert(T, xorbits(x)) << (nbits - 1 - (ibit - 1) % nbits)
+    end
+    out
+end
+
+
 @inline xorbits(a::Integer) = weird_xorbits(a)
 naive_xorbits(a::Integer) = begin
     result::Bool = a & one(a)
