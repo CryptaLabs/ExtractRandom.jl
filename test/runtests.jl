@@ -8,6 +8,33 @@ using Base.Test
     @test poisson_min_entropy(big(410), basis=2) ≈ 5.66578134513010429986151
 end
 
+@testset "Xorbit" begin
+    xorbits(::Type{Val{:naive}}, x) = ExtractRandom.naive_xorbits(x)
+    xorbits(::Type{Val{:weird}}, x) = ExtractRandom.weird_xorbits(x)
+    @testset "With algo $algo" for algo in [:naive, :weird]
+        Nbits = sizeof(typeof(1)) - 1
+        @test xorbits(Val{algo}, 0) == false
+        for i in 0:Nbits
+            @test xorbits(Val{algo}, 1 << i) == true
+            for j in (i + 1):Nbits
+                @test xorbits(Val{algo}, (1 << j) | (1 << i)) == false
+                for k in (j + 1):Nbits
+                    @test xorbits(Val{algo}, (1 << j) | (1 << i) | (1 << k)) == true
+                end
+            end
+        end
+    end
+
+    @testset "naive vs weird for type $T" for T in [Int8, Int16, Int32, Int64]
+        x = rand(T, 1000)
+        @test ExtractRandom.naive_xorbits.(x) == ExtractRandom.weird_xorbits.(x)
+
+        x = rand(unsigned(T), 1000)
+        @test ExtractRandom.naive_xorbits.(x) == ExtractRandom.weird_xorbits.(x)
+    end
+end
+
+
 @testset "2 universal hashing" begin
     @testset "With bits" begin
         a = convert(BitMatrix, [false true; true true; false false])
@@ -17,20 +44,6 @@ end
         a = [true true true; true false true; false false true]
         v = [false, true, true]
         @test two_universal(a, v) == [false, true, true]
-    end
-
-    @testset "xor bits of an integer" begin
-        Nbits = sizeof(typeof(1)) - 1
-        @test ExtractRandom.xorbits(0) == false
-        for i in 0:Nbits
-            @test ExtractRandom.xorbits(1 << i) == true
-            for j in (i + 1):Nbits
-                @test ExtractRandom.xorbits((1 << j) | (1 << i)) == false
-                for k in (j + 1):Nbits
-                    @test ExtractRandom.xorbits((1 << j) | (1 << i) | (1 << k)) == true
-                end
-            end
-        end
     end
 
     @testset "bit and integer representation" begin
