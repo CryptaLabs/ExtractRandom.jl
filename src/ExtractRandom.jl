@@ -10,6 +10,14 @@ poisson_min_entropy(average::Number; basis::Real=e) = begin
     -log(poisson(average, average)) / log(basis)
 end
 
+""" Min-entropy of the poisson distribution
+
+Uses the Ramanujan formula for `ln !n`. It avoids overflows issues, and converges at the
+rage of 1/1440n³.
+"""
+function poisson_min_entropy_ramanujan(x::Number; basis::Real=e)
+    1/6log(basis) * log(x * (1 + 4x * (1 + 2x))) + 1/2 * log(π) / log(basis)
+end
 abstract AbstractTwoUniversal
 
 include("xorbits.jl")
@@ -17,6 +25,7 @@ include("bits.jl")
 include("naive.jl")
 include("work_array.jl")
 include("row_major.jl")
+include("full_width.jl")
 
 for Algo in [NaiveTwoUniversal, WorkArrayTwoUniversal, RowMajorTwoUniversal]
     @eval begin
