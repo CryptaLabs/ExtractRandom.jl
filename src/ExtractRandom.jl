@@ -116,7 +116,8 @@ result is expanded by `8sizeof(eltype(input))`.
 bit_representation(input::AbstractArray) = begin
     const T = eltype(input)
     const nbits = 8sizeof(T)
-    result = BitArray(size(input, 1) * nbits, size(input)[2:end]...)
+    result = BitArray(size(input, 1) * nbits,
+                      collect(size(input, u) for u in 2:ndims(input))...)
     for i in eachindex(input)
         for i′ in 0:(nbits - 1)
             result[(i - 1) * nbits + nbits - i′] = (input[i] & (1 << i′)) ≠ 0
