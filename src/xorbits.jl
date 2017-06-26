@@ -1,4 +1,4 @@
-@inline xorbits(a::Integer) = weird_xorbits(a)
+@inline xorbits(a::Integer) = native_xorbits(a)
 
 naive_xorbits(a::Integer) = begin
     result::Bool = a & one(a)
@@ -24,3 +24,4 @@ end
     ((((x & xorbits_number(x)) * xorbits_number(x)) >> xorbits_shift(x)) & 1) ≠ 0
 end
 
+@inline native_xorbits(x) = count_ones(x) % 2 == 1

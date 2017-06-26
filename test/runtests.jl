@@ -25,12 +25,15 @@ end
         end
     end
 
-    @testset "naive vs weird for type $T" for T in [Int8, Int16, Int32, Int64]
+    @testset "naive vs weird vs native for type $T" for T in [Int8, Int16, Int32, Int64]
         x = rand(T, 1000)
         @test ExtractRandom.naive_xorbits.(x) == ExtractRandom.weird_xorbits.(x)
 
         x = rand(unsigned(T), 1000)
         @test ExtractRandom.naive_xorbits.(x) == ExtractRandom.weird_xorbits.(x)
+
+        x = rand(unsigned(T), 1000)
+        @test ExtractRandom.native_xorbits.(x) == ExtractRandom.weird_xorbits.(x)
     end
 end
 
